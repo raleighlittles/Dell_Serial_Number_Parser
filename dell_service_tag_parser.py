@@ -61,7 +61,7 @@ def get_likeliest_mfg_date(service_tag_date: str) -> str:
 
     elif (last_char_of_current_year > last_char_of_mfg_year):
         # Was made earlier this decade
-        mfg_year = curr_year[0:3] + last_char_of_mfg_year
+        mfg_year = str(curr_year)[0:3] + last_char_of_mfg_year
 
     else:  # last_char_of_mfg_year > last_char_of_current_year
 
@@ -110,7 +110,7 @@ def parse_service_tag(service_tag: str) -> dict:
     print(f"Likeliest mfg date: {likely_mfg_date}")
     print(f"Dell part number: {part_number}")
 
-    return dict({"Country": country, "Mfg_date": likely_mfg_date, "Dell Part number:": part_number, "Dell_Reserved_1": dell_reserved_1, "Dell_Reserved_2": dell_reserved_2})
+    return dict({"Country": country, "Likely_manufacturing_date": likely_mfg_date, "Dell_part_number": part_number, "Dell_Reserved_1": dell_reserved_1, "Dell_Reserved_2": dell_reserved_2, "Original" : service_tag})
 
 
 # service_tag_example = "CN-06TFFF-75661-48B-0237-A00"
