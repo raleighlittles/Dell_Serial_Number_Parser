@@ -110,7 +110,7 @@ def parse_service_tag(service_tag: str) -> dict:
     print(f"Likeliest mfg date: {likely_mfg_date}")
     print(f"Dell part number: {part_number}")
 
-    return dict({"Country": country, "Likely_manufacturing_date": likely_mfg_date, "Dell_part_number": part_number, "Dell_Reserved_1": dell_reserved_1, "Dell_Reserved_2": dell_reserved_2, "Original" : service_tag})
+    return dict({"Country_of_manufacture": country, "Likeliest_manufacture_date": likely_mfg_date, "Dell_part_number": part_number, "Dell_Reserved_1": dell_reserved_1, "Dell_Reserved_2": dell_reserved_2, "original" : service_tag})
 
 
 # service_tag_example = "CN-06TFFF-75661-48B-0237-A00"
