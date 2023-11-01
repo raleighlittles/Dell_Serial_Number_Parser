@@ -3,15 +3,34 @@ import flask
 import csv
 import flask_sqlalchemy
 import datetime
+import socket
 
-app = flask.Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
+def initialize_db(database):
 
-@app.route("/")
-def hello_world():
-    return "<p>Hello, World!</p>"
+    with open("service_tags.csv", "r") as csv_file:
 
-database = flask_sqlalchemy.SQLAlchemy(app)
+        csv_reader = csv.DictReader(csv_file)
+
+        for row_num, row_contents in enumerate(csv_reader):
+            if row_num == 0:
+                continue # skip column headers
+
+            else:
+                service_tag = ServiceTag(service_tag_id = row_contents["id"], 
+                                    mfg_country = row_contents["Country_of_manufacture"],
+                                    likely_mfg_date = row_contents["Likely_manufacture_date"],
+                                    dell_part_number = row_contents["Dell_part_number"],
+                                    dell_reserved_1 = row_contents["Dell_Reserved_1"],
+                                    dell_reserved_2 = row_contents["Dell_Reserved_2"],
+                                    service_tag = row_contents["original"],
+                                    service_tag_id = row_contents["id"],
+                                    datetime_parsed = datetime.datetime.strptime(row_contents["Date_parsed"], "%Y-%m-%d"),
+                                    epoch_timestamp_parsed = row_contents["timestamp"])
+                
+                database.session.add(service_tag)
+
+    database.session.commit()
+
 
 class ServiceTag(database.Model):
 
@@ -26,29 +45,22 @@ class ServiceTag(database.Model):
     epoch_timestamp_parsed = database.Column(database.BigInt, unique=False, nullable=True)
 
 
-with open("service_tags.csv", "r") as csv_file:
+if __name __ == "__main__":
 
-    csv_reader = csv.DictReader(csv_file)
+    flask_instance_id = "".join(socket.hostname(), "__", __file__)
+    app = flask.Flask(flask_instance_id)
 
-    for row_num, row_contents in enumerate(csv_reader):
-        if row_num == 0:
-            continue # skip column headers
+    database_name = datetime.datetime.now().strftime("%Y%m%d") + "service_tags"
+    app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:////tmp/{database_name}.db"
+    database = flask_sqlalchemy.SQLAlchemy(app)
 
-        else:
-            service_tag = ServiceTag(service_tag_id = row_contents["id"], 
-                                mfg_country = row_contents["Country_of_manufacture"],
-                                likely_mfg_date = row_contents["Likely_manufacture_date"],
-                                dell_part_number = row_contents["Dell_part_number"],
-                                dell_reserved_1 = row_contents["Dell_Reserved_1"],
-                                dell_reserved_2 = row_contents["Dell_Reserved_2"],
-                                service_tag = row_contents["original"],
-                                service_tag_id = row_contents["id"],
-                                datetime_parsed = datetime.datetime.strptime(row_contents["Date_parsed"], "%Y-%m-%d"),
-                                epoch_timestamp_parsed = row_contents["timestamp"])
-            
-            database.session.add(service_tag)
+    initialize_db(database)
 
-    database.session.commit()
+
+@app.route("/service_tags/create", methods=["POST"])
+def add_new_service_tag():
+
+    # TODO fill in
 
                                 
 
