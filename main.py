@@ -4,6 +4,9 @@ import csv
 import flask_sqlalchemy
 import datetime
 import socket
+# locals
+import forms
+
 
 def initialize_db(database):
 
@@ -23,7 +26,6 @@ def initialize_db(database):
                                     dell_reserved_1 = row_contents["Dell_Reserved_1"],
                                     dell_reserved_2 = row_contents["Dell_Reserved_2"],
                                     service_tag = row_contents["original"],
-                                    service_tag_id = row_contents["id"],
                                     datetime_parsed = datetime.datetime.strptime(row_contents["Date_parsed"], "%Y-%m-%d"),
                                     epoch_timestamp_parsed = row_contents["timestamp"])
                 
@@ -32,35 +34,42 @@ def initialize_db(database):
     database.session.commit()
 
 
-class ServiceTag(database.Model):
+flask_instance_id = "".join([socket.gethostname(), "__", __file__])
+flask_app = flask.Flask(flask_instance_id, static_folder="static")
+flask_app.config['SECRET_KEY'] = 'any secret string'
 
-    service_tag_id = database.Column(database.Integer, primary_key=True)
-    mfg_country = database.Column(database.String, unique=False, nullable=False)
-    likely_mfg_date = database.Column(database.DateTime, unique=False, nullable=False)
-    dell_part_number = database.Column(database.String, unique=False, nullable=False)
-    dell_reserved_1_field = database.Column(database.String, unique=False, nullable=False)
-    dell_reserved_2_field = database.Column(database.String, unique=False, nullable=False)
-    datetime_parsed = database.Column(database.DateTime, unique=False, nullable=True)
-    service_tag = database.Column(database.String, unique=True, nullable=True)
-    epoch_timestamp_parsed = database.Column(database.BigInt, unique=False, nullable=True)
+database_name = datetime.datetime.now().strftime("%Y%m%d") + "service_tags"
+# Must be done before database can be instantiated
+flask_app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:////tmp/{database_name}.db"
+database = flask_sqlalchemy.SQLAlchemy(flask_app)
 
-
-if __name __ == "__main__":
-
-    flask_instance_id = "".join(socket.hostname(), "__", __file__)
-    app = flask.Flask(flask_instance_id)
-
-    database_name = datetime.datetime.now().strftime("%Y%m%d") + "service_tags"
-    app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:////tmp/{database_name}.db"
-    database = flask_sqlalchemy.SQLAlchemy(app)
-
-    initialize_db(database)
-
-
-@app.route("/service_tags/create", methods=["POST"])
+@flask_app.route("/upload", methods=["GET", "POST"])
 def add_new_service_tag():
 
-    # TODO fill in
+    form = forms.SubmitServiceTagForm()
+
+    if flask.request.method == "GET":
+        return flask.render_template("submit.html", form=form)
+    
+    elif flask.request.method == "POST":
+        if form.validate() == False:
+            flask.flash("All fields are required!")
+            return flask.render_template("submit.html", form=form)
+        
+        else: # form passes validation
+            return '<h1>Service tag submitted!</h1>'
+
+    # if form.validate_on_submit():
+    #     return flask.redirect('/success')
+    
+    # return flask.render_template('submit.html', form=form)
 
                                 
+if __name__ == "__main__":
 
+    print("Initializing database...")
+    initialize_db(database)
+    print("Initialization complete")
+
+    print("Starting flask app...")
+    flask_app.run(debug=True)

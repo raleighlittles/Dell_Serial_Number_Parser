@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>{{ title }}</title>
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='dist/css/bootstrap.min.css') }}"
+	<link href="https://fonts.googleapis.com/css?family=Montserrat:300" rel="stylesheet">
+</head>
+<body>
+	<style type="text/css">
+		body{
+			font-family: 'Montserrat', sans-serif;
+		}
+	</style>
+	<div class="col-lg-12 text-center">
+		<div class="jumbotron">
+		<h1 class="display">Submit Dell Service Tag</h1>
+		<p class="lead">Submit your Dell Service tag here</p>
+
+		{% if success %}
+			<p class="lead text-success">Thank you for feedback !</p>
+		{% endif %}
+		</div>
+		
+
+		{% for message  in form.service_tag.errors %}
+		   <div class="flash">{{ message }}</div>
+		{% endfor %}
+	</div>
+
+		<div class="col-md-8 ml-5">
+		<form action="{{ url_for('add_new_service_tag') }}" method="POST">
+			
+
+			{{ form.hidden_tag() }}
+
+			{{ form.service_tag.label() }}
+			{{ form.service_tag(class="form-control pt-4") }}
+
+	
+			{{ form.submit(class="btn btn-outline-success ml-1 mt-5") }}
+
+
+		</form>
+	</div>
+	<p class="text-info ml-5 pt-4">**All fields are required.</p>
+
+</body>
+</html>
