@@ -95,7 +95,12 @@ def add_new_service_tag():
 
             parsed_service_tag_with_date = initialize_csv.add_date_info_to_service_tag_obj(parsed_service_tag)
 
-            new_service_tag_obj = ServiceTag(mfg_country=parsed_service_tag_with_date["Country_of_manufacture"], likely_mfg_date = datetime.datetime.strptime(parsed_service_tag_with_date["Likeliest_manufacture_date"], "%Y-%m-%d"), dell_part_number=parsed_service_tag_with_date["Dell_part_number"], dell_reserved_1_field=parsed_service_tag_with_date["Dell_Reserved_1"], dell_reserved_2_field=parsed_service_tag_with_date["Dell_Reserved_2"], service_tag_original=raw_service_tag, datetime_parsed= datetime.datetime.strptime(parsed_service_tag_with_date["Date_parsed"], "%Y-%m-%d"), epoch_timestamp_parsed = parsed_service_tag_with_date["timestamp"])
+            next_id = database.session.query(ServiceTag).count() + 1
+            flask_app.logger.info("Adding new item to table, with ID %s", next_id)
+
+            new_service_tag_obj = ServiceTag(service_tag_id=next_id, mfg_country=parsed_service_tag_with_date["Country_of_manufacture"], likely_mfg_date = datetime.datetime.strptime(parsed_service_tag_with_date["Likeliest_manufacture_date"], "%Y-%m-%d"), dell_part_number=parsed_service_tag_with_date["Dell_part_number"], dell_reserved_1_field=parsed_service_tag_with_date["Dell_Reserved_1"], dell_reserved_2_field=parsed_service_tag_with_date["Dell_Reserved_2"], service_tag_original=raw_service_tag, datetime_parsed= datetime.datetime.strptime(parsed_service_tag_with_date["Date_parsed"], "%Y-%m-%d"), epoch_timestamp_parsed = parsed_service_tag_with_date["timestamp"])
+
+            next_id = database.session.query(ServiceTag).count() + 1
 
             database.session.add(new_service_tag_obj)
             database.session.commit()
@@ -113,6 +118,7 @@ def add_new_service_tag():
 
 with flask_app.app_context():
 
+    # Should not have to run this, but I get an error if I take it out
     database.drop_all()
 
     print("Initializing database...")
