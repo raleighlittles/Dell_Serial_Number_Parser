@@ -3,9 +3,36 @@ import flask
 import csv
 import flask_sqlalchemy
 import datetime
+import sys
 import socket
+
 # locals
 import forms
+
+import dell_service_tag_parser
+import initialize_csv
+
+
+flask_instance_id = "".join([socket.gethostname(), "__", __file__])
+flask_app = flask.Flask(flask_instance_id, static_folder="static")
+flask_app.config['SECRET_KEY'] = 'any secret string'
+
+database_name = datetime.datetime.now().strftime("%Y%m%d") + "__service_tags"
+# Must be done before database can be instantiated
+flask_app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:////tmp/{database_name}.db"
+database = flask_sqlalchemy.SQLAlchemy(flask_app)
+
+
+class ServiceTag(database.Model):
+    service_tag_id = database.Column(database.String, primary_key=True)
+    mfg_country = database.Column(database.String, unique=False, nullable=False)
+    likely_mfg_date = database.Column(database.DateTime, unique=False, nullable=False)
+    dell_part_number = database.Column(database.String, unique=False, nullable=False)
+    dell_reserved_1_field = database.Column(database.String, unique=False, nullable=False)
+    dell_reserved_2_field = database.Column(database.String, unique=False, nullable=False)
+    datetime_parsed = database.Column(database.DateTime, unique=False, nullable=False)
+    service_tag_original = database.Column(database.String, unique=False, nullable=False)
+    epoch_timestamp_parsed = database.Column(database.BigInteger, unique=False, nullable=False)
 
 
 def initialize_db(database):
@@ -21,30 +48,35 @@ def initialize_db(database):
             else:
                 service_tag = ServiceTag(service_tag_id = row_contents["id"], 
                                     mfg_country = row_contents["Country_of_manufacture"],
-                                    likely_mfg_date = row_contents["Likely_manufacture_date"],
+                                    likely_mfg_date = datetime.datetime.strptime(row_contents["Likeliest_manufacture_date"], "%Y-%m-%d"),
                                     dell_part_number = row_contents["Dell_part_number"],
-                                    dell_reserved_1 = row_contents["Dell_Reserved_1"],
-                                    dell_reserved_2 = row_contents["Dell_Reserved_2"],
-                                    service_tag = row_contents["original"],
+                                    dell_reserved_1_field = row_contents["Dell_Reserved_1"],
+                                    dell_reserved_2_field = row_contents["Dell_Reserved_2"],
+                                    service_tag_original = row_contents["original"],
                                     datetime_parsed = datetime.datetime.strptime(row_contents["Date_parsed"], "%Y-%m-%d"),
                                     epoch_timestamp_parsed = row_contents["timestamp"])
                 
+                print(f"Adding service tag with ID {row_contents['id']}")
+                
                 database.session.add(service_tag)
+                # database.session.add(ServiceTag(service_tag_id = row_contents["id"], 
+                #                     mfg_country = row_contents["Country_of_manufacture"],
+                #                     likely_mfg_date = datetime.datetime.strptime(row_contents["Likeliest_manufacture_date"], "%Y-%m-%d"),
+                #                     dell_part_number = row_contents["Dell_part_number"],
+                #                     dell_reserved_1_field = row_contents["Dell_Reserved_1"],
+                #                     dell_reserved_2_field = row_contents["Dell_Reserved_2"],
+                #                     service_tag_original = row_contents["original"],
+                #                     datetime_parsed = datetime.datetime.strptime(row_contents["Date_parsed"], "%Y-%m-%d"),
+                #                     epoch_timestamp_parsed = row_contents["timestamp"]))
 
-    database.session.commit()
+                database.session.flush()
+        database.session.commit()
 
-
-flask_instance_id = "".join([socket.gethostname(), "__", __file__])
-flask_app = flask.Flask(flask_instance_id, static_folder="static")
-flask_app.config['SECRET_KEY'] = 'any secret string'
-
-database_name = datetime.datetime.now().strftime("%Y%m%d") + "service_tags"
-# Must be done before database can be instantiated
-flask_app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:////tmp/{database_name}.db"
-database = flask_sqlalchemy.SQLAlchemy(flask_app)
 
 @flask_app.route("/upload", methods=["GET", "POST"])
 def add_new_service_tag():
+
+    flask_app.logger.info("add_new_service_tag() called")
 
     form = forms.SubmitServiceTagForm()
 
@@ -57,6 +89,17 @@ def add_new_service_tag():
             return flask.render_template("submit.html", form=form)
         
         else: # form passes validation
+            flask_app.logger.info("Service tag submitted %s", form.service_tag.data)
+            raw_service_tag = form.service_tag.data
+            parsed_service_tag = dell_service_tag_parser.parse_service_tag(raw_service_tag)
+
+            parsed_service_tag_with_date = initialize_csv.add_date_info_to_service_tag_obj(parsed_service_tag)
+
+            new_service_tag_obj = ServiceTag(mfg_country=parsed_service_tag_with_date["Country_of_manufacture"], likely_mfg_date = datetime.datetime.strptime(parsed_service_tag_with_date["Likeliest_manufacture_date"], "%Y-%m-%d"), dell_part_number=parsed_service_tag_with_date["Dell_part_number"], dell_reserved_1_field=parsed_service_tag_with_date["Dell_Reserved_1"], dell_reserved_2_field=parsed_service_tag_with_date["Dell_Reserved_2"], service_tag_original=raw_service_tag, datetime_parsed= datetime.datetime.strptime(parsed_service_tag_with_date["Date_parsed"], "%Y-%m-%d"), epoch_timestamp_parsed = parsed_service_tag_with_date["timestamp"])
+
+            database.session.add(new_service_tag_obj)
+            database.session.commit()
+
             return '<h1>Service tag submitted!</h1>'
 
     # if form.validate_on_submit():
@@ -64,10 +107,17 @@ def add_new_service_tag():
     
     # return flask.render_template('submit.html', form=form)
 
-                                
-if __name__ == "__main__":
+
+# Flask doesn't use the __main__
+# https://www.pythonanywhere.com/forums/topic/27053/
+
+with flask_app.app_context():
+
+    database.drop_all()
 
     print("Initializing database...")
+    database.create_all()
+
     initialize_db(database)
     print("Initialization complete")
 

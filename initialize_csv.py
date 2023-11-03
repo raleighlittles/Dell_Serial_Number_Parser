@@ -14,7 +14,7 @@ def add_date_info_to_service_tag_obj(service_tag : typing.Dict) -> typing.Dict:
     curr_timestamp = datetime.datetime.now()
 
     curr_epoch = curr_timestamp.strftime("%s")
-    curr_datetime = curr_timestamp.strftime("%Y%m%d%H%M%S")
+    curr_datetime = curr_timestamp.strftime("%Y-%m-%d")
 
     service_tag["Date_parsed"] = curr_datetime
     service_tag["timestamp"] = curr_epoch
