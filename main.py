@@ -59,15 +59,6 @@ def initialize_db(database):
                 print(f"Adding service tag with ID {row_contents['id']}")
                 
                 database.session.add(service_tag)
-                # database.session.add(ServiceTag(service_tag_id = row_contents["id"], 
-                #                     mfg_country = row_contents["Country_of_manufacture"],
-                #                     likely_mfg_date = datetime.datetime.strptime(row_contents["Likeliest_manufacture_date"], "%Y-%m-%d"),
-                #                     dell_part_number = row_contents["Dell_part_number"],
-                #                     dell_reserved_1_field = row_contents["Dell_Reserved_1"],
-                #                     dell_reserved_2_field = row_contents["Dell_Reserved_2"],
-                #                     service_tag_original = row_contents["original"],
-                #                     datetime_parsed = datetime.datetime.strptime(row_contents["Date_parsed"], "%Y-%m-%d"),
-                #                     epoch_timestamp_parsed = row_contents["timestamp"]))
 
                 database.session.flush()
         database.session.commit()
@@ -98,14 +89,24 @@ def add_new_service_tag():
             next_id = database.session.query(ServiceTag).count() + 1
             flask_app.logger.info("Adding new item to table, with ID %s", next_id)
 
-            new_service_tag_obj = ServiceTag(service_tag_id=next_id, mfg_country=parsed_service_tag_with_date["Country_of_manufacture"], likely_mfg_date = datetime.datetime.strptime(parsed_service_tag_with_date["Likeliest_manufacture_date"], "%Y-%m-%d"), dell_part_number=parsed_service_tag_with_date["Dell_part_number"], dell_reserved_1_field=parsed_service_tag_with_date["Dell_Reserved_1"], dell_reserved_2_field=parsed_service_tag_with_date["Dell_Reserved_2"], service_tag_original=raw_service_tag, datetime_parsed= datetime.datetime.strptime(parsed_service_tag_with_date["Date_parsed"], "%Y-%m-%d"), epoch_timestamp_parsed = parsed_service_tag_with_date["timestamp"])
+            mfg_country = parsed_service_tag_with_date["Country_of_manufacture"]
+            likely_mfg_date = datetime.datetime.strptime(parsed_service_tag_with_date["Likeliest_manufacture_date"], "%Y-%m-%d")
+            dell_part_number = parsed_service_tag_with_date["Dell_part_number"]
+            dell_reserved_1_field = parsed_service_tag_with_date["Dell_Reserved_1"]
+            dell_reserved_2_field = parsed_service_tag_with_date["Dell_Reserved_2"]
+
+
+            # new_service_tag_obj = ServiceTag(service_tag_id=next_id, mfg_country=parsed_service_tag_with_date["Country_of_manufacture"], likely_mfg_date = datetime.datetime.strptime(parsed_service_tag_with_date["Likeliest_manufacture_date"], "%Y-%m-%d"), dell_part_number=parsed_service_tag_with_date["Dell_part_number"], dell_reserved_1_field=parsed_service_tag_with_date["Dell_Reserved_1"], dell_reserved_2_field=parsed_service_tag_with_date["Dell_Reserved_2"], service_tag_original=raw_service_tag, datetime_parsed= datetime.datetime.strptime(parsed_service_tag_with_date["Date_parsed"], "%Y-%m-%d"), epoch_timestamp_parsed = parsed_service_tag_with_date["timestamp"])
+
+            new_service_tag_obj = ServiceTag(service_tag_id=next_id, mfg_country=mfg_country, likely_mfg_date = likely_mfg_date, dell_part_number=dell_part_number, dell_reserved_1_field=dell_reserved_1_field, dell_reserved_2_field=dell_reserved_2_field, service_tag_original=raw_service_tag, datetime_parsed= datetime.datetime.strptime(parsed_service_tag_with_date["Date_parsed"], "%Y-%m-%d"), epoch_timestamp_parsed = parsed_service_tag_with_date["timestamp"])
 
             next_id = database.session.query(ServiceTag).count() + 1
 
             database.session.add(new_service_tag_obj)
             database.session.commit()
 
-            return '<h1>Service tag submitted!</h1>'
+            #return '<h1>Service tag submitted!</h1>'
+            return flask.render_template("submission_successful.html", submission_number=next_id, original_service_tag=raw_service_tag, likeliest_mfg_date=likely_mfg_date, dell_part_number=dell_part_number, dell_reserved_1=dell_reserved_1_field, dell_reserved_2=dell_reserved_2_field)
 
     # if form.validate_on_submit():
     #     return flask.redirect('/success')

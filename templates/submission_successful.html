@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Thanks!</title>
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='dist/css/bootstrap.css') }}">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+</head>
+<table class="table table-hover">
+    <thead class="thead-dark">
+      <tr>
+        <th scope="col">Submission ID</th>
+        <th scope="col">Service Tag</th>
+        <th scope="col">Country of Manufacture</th>
+        <th scope="col">Likeliest Mfg date</th>
+        <th scope="col">Dell part number</th>
+        <th scope="col">Dell Reserved field #1</th>
+        <th scope="col">Dell Reserved field #2</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th scope="row">{{submission_number}}</th>
+        <td>{{ original_service_tag }}</td>
+        <td>{{ country_of_mfg }} </td>
+        <td> {{ likeliest_mfg_date }} </td>
+        <td> {{ dell_part_number }} </td>
+        <td> {{ dell_reserved_1 }} </td>
+        <td> {{ dell_reserved_2 }} </td>
+      </tr>
+
+    </tbody>
+  </table>
+
+  <div class="accordion" id="accordionInfo">
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="headingOne">
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+          Why "likeliest"?
+        </button>
+      </h2>
+      <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionDateInfo">
+        <div class="accordion-body">
+          The service tag only provides the last digit, of the year, the product was manufactured; we show the likeliest manufacturing date with the assumption that its the most recent year possible. For example, if your likeliest manufacture date was <b>2021-09-11</b>, then other possible manufacturing dates are: 20<b>11</b>-09-11, or 20<b>01</b>-09-11.
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="headingTwo">
+          <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
+            What are "Reserved" fields?
+          </button>
+        </h2>
+        <div id="collapseTwo" class="accordion-collapse collapse show" aria-labelledby="headingTwo" data-bs-parent="#accordionInfo">
+          <div class="accordion-body">
+            I'm not sure. These fields haven't been documented so I guessed that they're likely part of some internal Dell inventory system. If you know what these fields are for, please reach out to me!
+          </div>
+        </div>
+    
+    
+
+    
+    </div>
