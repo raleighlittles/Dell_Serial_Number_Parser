@@ -1,4 +1,3 @@
-
 import os
 import datetime
 import csv
@@ -9,7 +8,7 @@ import time
 import dell_service_tag_parser
 
 
-def add_date_info_to_service_tag_obj(service_tag : typing.Dict) -> typing.Dict:
+def add_date_info_to_service_tag_obj(service_tag: typing.Dict) -> typing.Dict:
 
     curr_timestamp = datetime.datetime.now()
 
@@ -29,14 +28,15 @@ if __name__ == "__main__":
     with open("service_tags.txt", "r") as service_tags_file:
 
         for line_num, line_content in enumerate(service_tags_file):
-            service_tag_dict_obj = dell_service_tag_parser.parse_service_tag(line_content.strip())
+            service_tag_dict_obj = dell_service_tag_parser.parse_service_tag(
+                line_content.strip())
 
             service_tag_dict_obj["id"] = line_num
-            service_tag_dict_obj = add_date_info_to_service_tag_obj(service_tag_dict_obj)
-            
+            service_tag_dict_obj = add_date_info_to_service_tag_obj(
+                service_tag_dict_obj)
+
             service_tags_list.append(service_tag_dict_obj)
             time.sleep(1)
-
 
     with open("service_tags.csv", "w") as csv_file:
 
@@ -47,5 +47,3 @@ if __name__ == "__main__":
         for service_tag_num, service_tag in enumerate(service_tags_list):
 
             csv_writer.writerow(service_tag)
-
-    

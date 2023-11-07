@@ -79,9 +79,10 @@ def parse_service_tag(service_tag: str) -> dict:
 
     min_service_tag_len, max_service_tag_len = 24, 30
 
-    if (service_tag_len < min_service_tag_len) or (service_tag_len > max_service_tag_len):
-        raise ValueError(
-            f"Service tag {service_tag} has invalid length of ", service_tag_len)
+    if (service_tag_len < min_service_tag_len) or (service_tag_len
+                                                   > max_service_tag_len):
+        raise ValueError(f"Service tag {service_tag} has invalid length of ",
+                         service_tag_len)
 
     separator = "-"
 
@@ -106,21 +107,25 @@ def parse_service_tag(service_tag: str) -> dict:
     country = get_country_name_from_country_code(country_code)
     likely_mfg_date = get_likeliest_mfg_date(mfg_date_str)
 
-    print(f"Country: {country}")
-    print(f"Likeliest mfg date: {likely_mfg_date}")
-    print(f"Dell part number: {part_number}")
+    # print(f"Country: {country}")
+    # print(f"Likeliest mfg date: {likely_mfg_date}")
+    # print(f"Dell part number: {part_number}")
 
-    return dict({"Country_of_manufacture": country, "Likeliest_manufacture_date": likely_mfg_date, "Dell_part_number": part_number, "Dell_Reserved_1": dell_reserved_1, "Dell_Reserved_2": dell_reserved_2, "original" : service_tag})
+    return dict({
+        "Country_of_manufacture": country,
+        "Likeliest_manufacture_date": likely_mfg_date,
+        "Dell_part_number": part_number,
+        "Dell_Reserved_1": dell_reserved_1,
+        "Dell_Reserved_2": dell_reserved_2,
+        "original": service_tag
+    })
 
 
-# service_tag_example = "CN-06TFFF-75661-48B-0237-A00"
-
-service_tag_list = ["CN-06TFFF-75661-48B-0237-A00",
-                    "CN-0FWCRC-48661-355-1YZG-A02",
-                    "CN-0WW4XY-48661-59U-4HB6-A05",
-                    "CN-00J5C6-12966-7CR-01EE-A05",
-                    "CN-0WW4XY-48661-5A6-4O0V-A05",
-                    "CN-0DJ491-71581-3AI-025O"]
+service_tag_list = [
+    "CN-06TFFF-75661-48B-0237-A00", "CN-0FWCRC-48661-355-1YZG-A02",
+    "CN-0WW4XY-48661-59U-4HB6-A05", "CN-00J5C6-12966-7CR-01EE-A05",
+    "CN-0WW4XY-48661-5A6-4O0V-A05", "CN-0DJ491-71581-3AI-025O"
+]
 
 for service_tag in service_tag_list:
     print("------------------------------")
