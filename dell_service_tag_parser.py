@@ -5,10 +5,8 @@
 #
 #
 
-import iso3166
 import datetime
-
-service_tag = "CC-PPPPPP-aaaaa-YMD-bbbb"
+import iso3166
 
 
 def get_country_name_from_country_code(country_name: str) -> str:

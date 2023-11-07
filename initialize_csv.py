@@ -1,9 +1,7 @@
-import os
-import datetime
 import csv
-import typing
-import pdb
+import datetime
 import time
+import typing
 # locals
 import dell_service_tag_parser
 

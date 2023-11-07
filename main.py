@@ -1,27 +1,34 @@
-import flask
 import csv
-import flask_sqlalchemy
 import datetime
-import sys
+import flask
+import flask_sqlalchemy
+import secrets
+import string
 import socket
 import sqlalchemy
+import sys
 
 # locals
-import forms
-
+import project_forms
 import dell_service_tag_parser
 import initialize_csv
 
+def generate_secret_key(length):
+    password = ''.join(secrets.choice((string.ascii_letters + string.digits)) for i in range(length))
+    return password
+
 flask_instance_id = "".join([socket.gethostname(), "__", __file__])
+
 flask_app = flask.Flask(flask_instance_id, static_folder="static")
-flask_app.config['SECRET_KEY'] = 'any secret string'
+
+# needed for CSRF
+flask_app.config['SECRET_KEY'] = generate_secret_key(12)
 
 database_name = datetime.datetime.now().strftime("%Y%m%d") + "__service_tags"
 # Must be done before database can be instantiated
 flask_app.config[
     'SQLALCHEMY_DATABASE_URI'] = f"sqlite:////tmp/{database_name}.db"
 database = flask_sqlalchemy.SQLAlchemy(flask_app)
-
 
 class ServiceTag(database.Model):
     service_tag_id = database.Column(database.String, primary_key=True)
@@ -89,7 +96,7 @@ def add_new_service_tag():
 
     flask_app.logger.info("add_new_service_tag() called")
 
-    form = forms.SubmitServiceTagForm()
+    form = project_forms.SubmitServiceTagForm()
 
     if flask.request.method == "GET":
         return flask.render_template("submit.html", form=form)
@@ -144,6 +151,7 @@ def add_new_service_tag():
                 database.session.commit()
                 return flask.render_template(
                     "submission_successful.html",
+                    country_of_mfg=mfg_country,
                     submission_number=next_id,
                     original_service_tag=raw_service_tag,
                     likeliest_mfg_date=likely_mfg_date,
@@ -155,9 +163,11 @@ def add_new_service_tag():
 
                 # Tried to submit a service tag that already exists
                 database.session.rollback()
+
                 flask_app.logger.warn(
                     "Duplicate serial number received -- could not submit to database"
                 )
+
                 # Figure out when the serial number was originally submitted and let the user know
                 original_serial_number_submission = ServiceTag.query.filter_by(
                     service_tag_original=raw_service_tag)
