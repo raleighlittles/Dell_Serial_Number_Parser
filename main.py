@@ -5,6 +5,7 @@ import flask_sqlalchemy
 import datetime
 import sys
 import socket
+import sqlalchemy
 
 # locals
 import forms
@@ -31,7 +32,7 @@ class ServiceTag(database.Model):
     dell_reserved_1_field = database.Column(database.String, unique=False, nullable=False)
     dell_reserved_2_field = database.Column(database.String, unique=False, nullable=False)
     datetime_parsed = database.Column(database.DateTime, unique=False, nullable=False)
-    service_tag_original = database.Column(database.String, unique=False, nullable=False)
+    service_tag_original = database.Column(database.String, unique=True, nullable=False)
     epoch_timestamp_parsed = database.Column(database.BigInteger, unique=False, nullable=False)
 
 
@@ -95,23 +96,24 @@ def add_new_service_tag():
             dell_reserved_1_field = parsed_service_tag_with_date["Dell_Reserved_1"]
             dell_reserved_2_field = parsed_service_tag_with_date["Dell_Reserved_2"]
 
-
-            # new_service_tag_obj = ServiceTag(service_tag_id=next_id, mfg_country=parsed_service_tag_with_date["Country_of_manufacture"], likely_mfg_date = datetime.datetime.strptime(parsed_service_tag_with_date["Likeliest_manufacture_date"], "%Y-%m-%d"), dell_part_number=parsed_service_tag_with_date["Dell_part_number"], dell_reserved_1_field=parsed_service_tag_with_date["Dell_Reserved_1"], dell_reserved_2_field=parsed_service_tag_with_date["Dell_Reserved_2"], service_tag_original=raw_service_tag, datetime_parsed= datetime.datetime.strptime(parsed_service_tag_with_date["Date_parsed"], "%Y-%m-%d"), epoch_timestamp_parsed = parsed_service_tag_with_date["timestamp"])
-
             new_service_tag_obj = ServiceTag(service_tag_id=next_id, mfg_country=mfg_country, likely_mfg_date = likely_mfg_date, dell_part_number=dell_part_number, dell_reserved_1_field=dell_reserved_1_field, dell_reserved_2_field=dell_reserved_2_field, service_tag_original=raw_service_tag, datetime_parsed= datetime.datetime.strptime(parsed_service_tag_with_date["Date_parsed"], "%Y-%m-%d"), epoch_timestamp_parsed = parsed_service_tag_with_date["timestamp"])
 
-            next_id = database.session.query(ServiceTag).count() + 1
+            next_id = (database.session.query(ServiceTag).count() + 1)
 
-            database.session.add(new_service_tag_obj)
-            database.session.commit()
+            try:
+                database.session.add(new_service_tag_obj)
+                database.session.commit()
+                return flask.render_template("submission_successful.html", submission_number=next_id, original_service_tag=raw_service_tag, likeliest_mfg_date=likely_mfg_date, dell_part_number=dell_part_number, dell_reserved_1=dell_reserved_1_field, dell_reserved_2=dell_reserved_2_field)
 
-            #return '<h1>Service tag submitted!</h1>'
-            return flask.render_template("submission_successful.html", submission_number=next_id, original_service_tag=raw_service_tag, likeliest_mfg_date=likely_mfg_date, dell_part_number=dell_part_number, dell_reserved_1=dell_reserved_1_field, dell_reserved_2=dell_reserved_2_field)
+            except sqlalchemy.exc.IntegrityError:
 
-    # if form.validate_on_submit():
-    #     return flask.redirect('/success')
-    
-    # return flask.render_template('submit.html', form=form)
+                # Tried to submit a service tag that already exists
+                database.session.rollback()
+                flask_app.logger.warn("Duplicate serial number received -- could not submit to database")
+                # Figure out when the serial number was originally submitted and let the user know
+                original_serial_number_submission = ServiceTag.query.filter_by(service_tag_original = raw_service_tag)
+
+                return flask.render_template("submission_failed.html", user_serial_number=raw_service_tag, original_submission_date=original_serial_number_submission.first().datetime_parsed)
 
 
 # Flask doesn't use the __main__
@@ -129,4 +131,4 @@ with flask_app.app_context():
     print("Initialization complete")
 
     print("Starting flask app...")
-    flask_app.run(debug=True)
+    #flask_app.run(debug=True)
