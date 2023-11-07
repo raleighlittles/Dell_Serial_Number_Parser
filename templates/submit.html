@@ -21,19 +21,19 @@
 		{% endif %}
 		</div>
 		
-		{% for message  in form.service_tag.errors %}
+		{% for message  in form.serial_number.errors %}
 		   <div class="flash">{{ message }}</div>
 		{% endfor %}
 	</div>
 
 		<div class="col-md-8 ml-5">
-		<form action="{{ url_for('add_new_service_tag') }}" method="POST">
+		<form action="{{ url_for('add_new_serial_number') }}" method="POST">
 			
 
 			{{ form.hidden_tag() }}
 
-			{{ form.service_tag.label() }}
-			{{ form.service_tag(class="form-control pt-4") }}
+			{{ form.serial_number.label() }}
+			{{ form.serial_number(class="form-control pt-4") }}
 
 
 			{{ form.submit(class="btn btn-outline-success btn-lg ml-1 mt-5") }}

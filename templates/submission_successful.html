@@ -9,7 +9,7 @@
     <thead class="thead-dark">
       <tr>
         <th scope="col">Submission ID</th>
-        <th scope="col">Service Tag</th>
+        <th scope="col">Serial Number</th>
         <th scope="col">Country of Manufacture</th>
         <th scope="col">Likeliest Mfg date</th>
         <th scope="col">Dell part number</th>
@@ -20,7 +20,7 @@
     <tbody>
       <tr>
         <th scope="row">{{submission_number}}</th>
-        <td>{{ original_service_tag }}</td>
+        <td>{{ original_serial_number }}</td>
         <td>{{ country_of_mfg }} </td>
         <td> {{ likeliest_mfg_date }} </td>
         <td> {{ dell_part_number }} </td>
@@ -40,7 +40,7 @@
       </h2>
       <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionDateInfo">
         <div class="accordion-body">
-          The service tag only provides the last digit, of the year, the product was manufactured; we show the likeliest manufacturing date with the assumption that its the most recent year possible. For example, if your likeliest manufacture date was <b>2021-09-11</b>, then other possible manufacturing dates are: 20<b>11</b>-09-11, or 20<b>01</b>-09-11.
+          The serial number only provides the last digit, of the year, the product was manufactured; we show the likeliest manufacturing date with the assumption that its the most recent year possible. For example, if your likeliest manufacture date was <b>2021-09-11</b>, then other possible manufacturing dates are: 20<b>11</b>-09-11, or 20<b>01</b>-09-11.
         </div>
       </div>
 

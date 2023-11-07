@@ -1,4 +1,4 @@
-# Filename: parse_dell_service_tag.py
+# Filename: parse_dell_serial_number.py
 #
 # Date: 2023-10-26
 # Author: Raleigh Littles <raleighlittles@gmail.com>
@@ -14,12 +14,12 @@ def get_country_name_from_country_code(country_name: str) -> str:
     return iso3166.countries.get(country_name).name
 
 
-def get_likeliest_mfg_date(service_tag_date: str) -> str:
+def get_likeliest_mfg_date(serial_number_date: str) -> str:
 
-    mfg_month = int(service_tag_date[1], 16)
-    mfg_day = int(service_tag_date[2], 32)
+    mfg_month = int(serial_number_date[1], 16)
+    mfg_day = int(serial_number_date[2], 32)
 
-    last_char_of_mfg_year = service_tag_date[0]
+    last_char_of_mfg_year = serial_number_date[0]
 
     current_timestamp = datetime.datetime.today()
 
@@ -71,20 +71,20 @@ def get_likeliest_mfg_date(service_tag_date: str) -> str:
     return f"{mfg_year}-{mfg_month}-{mfg_day}"
 
 
-def parse_service_tag(service_tag: str) -> dict:
+def parse_serial_number(serial_number: str) -> dict:
 
-    service_tag_len = len(service_tag)
+    serial_number_len = len(serial_number)
 
-    min_service_tag_len, max_service_tag_len = 24, 30
+    min_serial_number_len, max_serial_number_len = 24, 30
 
-    if (service_tag_len < min_service_tag_len) or (service_tag_len
-                                                   > max_service_tag_len):
-        raise ValueError(f"Service tag {service_tag} has invalid length of ",
-                         service_tag_len)
+    if (serial_number_len < min_serial_number_len) or (serial_number_len
+                                                   > max_serial_number_len):
+        raise ValueError(f"Serial number {serial_number} has invalid length of ",
+                         serial_number_len)
 
     separator = "-"
 
-    num_sections = service_tag.count(separator)
+    num_sections = serial_number.count(separator)
 
     country_code, part_number, mfg_date_str = "", "", ""
 
@@ -93,13 +93,13 @@ def parse_service_tag(service_tag: str) -> dict:
     # https://telcontar.net/KBK/Dell/date_codes
     # https://www.partschase.com/index.php?route=forum/read&forum_path=9&forum_post_id=45
     if num_sections == 4:
-        country_code, part_number, dell_reserved_1, mfg_date_str, dell_reserved_2 = service_tag.split(
+        country_code, part_number, dell_reserved_1, mfg_date_str, dell_reserved_2 = serial_number.split(
             separator)
 
     # Newer Dell serial numbers have an extra field, which I have not seen documented anywhere yet.
     # I don't know when this switch started happening.
     elif num_sections == 5:
-        country_code, part_number, dell_reserved_1, mfg_date_str, dell_reserved_2, dell_reserved_3_opt = service_tag.split(
+        country_code, part_number, dell_reserved_1, mfg_date_str, dell_reserved_2, dell_reserved_3_opt = serial_number.split(
             separator)
 
     country = get_country_name_from_country_code(country_code)
@@ -115,17 +115,17 @@ def parse_service_tag(service_tag: str) -> dict:
         "Dell_part_number": part_number,
         "Dell_Reserved_1": dell_reserved_1,
         "Dell_Reserved_2": dell_reserved_2,
-        "original": service_tag
+        "original": serial_number
     })
 
 
-service_tag_list = [
+serial_number_list = [
     "CN-06TFFF-75661-48B-0237-A00", "CN-0FWCRC-48661-355-1YZG-A02",
     "CN-0WW4XY-48661-59U-4HB6-A05", "CN-00J5C6-12966-7CR-01EE-A05",
     "CN-0WW4XY-48661-5A6-4O0V-A05", "CN-0DJ491-71581-3AI-025O"
 ]
 
-for service_tag in service_tag_list:
+for serial_number in serial_number_list:
     print("------------------------------")
-    parse_service_tag(service_tag)
+    parse_serial_number(serial_number)
     print("------------------------------")
